@@ -1,54 +1,41 @@
-from datetime import datetime, timedelta
-from textwrap import dedent
-from airflow import DAG
+from __future__ import print_function
 
-from airflow.operators.bash import BashOperator
-from airflow.operators.dummy import DummyOperator
-from airflow.operators.python import BranchPythonOperator
-from airflow.utils.trigger_rule import TriggerRule
+import datetime
 
+from airflow import models
+from airflow.operators import bash_operator
+from airflow.operators import python_operator
 
-def random_branch_path():
-    # 필요 라이브러리는 여기서 import
-    # https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html#writing-a-dag 참고
-    from random import randint
+default_dag_args = {
+    # The start_date describes when a DAG is valid / can be run. Set this to a
+    # fixed point in time rather than dynamically, since it is evaluated every
+    # time a DAG is parsed. See:
+    # https://airflow.apache.org/faq.html#what-s-the-deal-with-start-date
+    'start_date': datetime.datetime(2018, 1, 1),
+}
 
-    return "path1" if randint(1, 2) == 1 else "my_name_en"
+# Define a DAG (directed acyclic graph) of tasks.
+# Any task you create within the context manager is automatically added to the
+# DAG object.
+with models.DAG(
+        'composer_sample_simple_greeting',
+        schedule_interval=datetime.timedelta(days=1),
+        default_args=default_dag_args) as dag:
+    def greeting():
+        import logging
+        logging.info('Hello World!')
 
-with DAG( **dag_args ) as dag:
+    # An instance of an operator is called a task. In this case, the
+    # hello_python task calls the "greeting" Python function.
+    hello_python = python_operator.PythonOperator(
+        task_id='hello',
+        python_callable=greeting)
 
-    # t1, t2 and t3 are examples of tasks created by instantiating operators
-    t1 = BashOperator(
-        task_id='print_date',
-        bash_command='date',
-    )
+    # Likewise, the goodbye_bash task calls a Bash script.
+    goodbye_bash = bash_operator.BashOperator(
+        task_id='bye',
+        bash_command='echo Goodbye.')
 
-    t2 = BranchPythonOperator(
-        task_id='branch',
-        python_callable=random_branch_path,
-    )
-    
-    t3 = BashOperator(
-        task_id='my_name_ko',
-        depends_on_past=False,
-        bash_command='echo "안녕하세요."',
-    )
-
-    t4 = BashOperator(
-        task_id='my_name_en',
-        depends_on_past=False,
-        bash_command='echo "Hi"',
-    )
-
-    complete = BashOperator(
-        task_id='complete',
-        depends_on_past=False,
-        bash_command='echo "complete~!"',
-        trigger_rule=TriggerRule.NONE_FAILED
-    )
-
-    dummy_1 = DummyOperator(task_id="path1")
-
-
-    t1 >> t2 >> dummy_1 >> t3 >> complete
-    t1 >> t2 >> t4 >> complete
+    # Define the order in which the tasks complete by using the >> and <<
+    # operators. In this example, hello_python executes before goodbye_bash.
+    hello_python >> goodbye_bash

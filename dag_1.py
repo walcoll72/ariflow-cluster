@@ -4,7 +4,8 @@ import datetime
 
 from airflow import models
 from airflow.operators import bash_operator
-from airflow.operators import python_operator
+from airflow.operators.python_operator import PythonOperator
+
 
 default_dag_args = {
     # The start_date describes when a DAG is valid / can be run. Set this to a

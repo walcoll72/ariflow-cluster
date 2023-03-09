@@ -26,3 +26,5 @@ print_hello_task = PythonOperator(
     python_callable=print_hello,
     dag=dag
 )
+
+print_hello

@@ -17,7 +17,7 @@ def print_hello():
 dag = DAG(
     'print_hello_dag',
     default_args=default_args,
-    schedule_interval=None
+    schedule_interval = '@once'
 )
 
 # Define the task to print 'hello'

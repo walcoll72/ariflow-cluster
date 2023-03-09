@@ -6,7 +6,7 @@ from airflow.operators.python_operator import PythonOperator
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2022, 1, 1)
+    'start_date': datetime(2023, 3, 8)
 }
 
 # Define the function to print 'hello' to console

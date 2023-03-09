@@ -16,7 +16,7 @@ def print_goodbye():
 dag = DAG(
 	dag_id = 'my_first_dag',
 	start_date = datetime(2023,3,8),
-	schedule_interval = @once
+	schedule_interval = '@once'
     )
 
 #DAG Task 작성
